@@ -1,11 +1,14 @@
 import React from "react";
 import { Header } from "@/components/Header/Header";
-import { callWeatherApi, WeatherData } from "@/lib/call-weather-api";
-import Spacer from "@/components/Spacer/Spacer";
 import { BodyText } from "@/components/BodyText/BodyText";
-
-const LONDON_LATITUDE = "51.509865";
-const LONDON_LONGITUDE = "-0.118092";
+import { callWeatherApi, WeatherData } from "@/lib/call-weather-api";
+import Accordion from "@/components/Accordion/Accordion";
+import Spacer from "@/components/Spacer/Spacer";
+import {
+  extraCitiesLocationData,
+  LONDON_LATITUDE,
+  LONDON_LONGITUDE,
+} from "./constants";
 
 interface getFormattedWeatherDataArrayType {
   main: string;
@@ -42,6 +45,23 @@ export default async function LandingPage(): Promise<JSX.Element> {
     windspeed: londonWeatherData.wind.speed,
   });
 
+  const extraLocationsWeatherData = await Promise.all(
+    extraCitiesLocationData.map(async (locationData) => {
+      const locationWeatherData = await callWeatherApi<WeatherData>({
+        lat: locationData.latitude,
+        lon: locationData.longitude,
+      });
+      return {
+        header: locationData.header,
+        main: locationWeatherData.weather[0].main,
+        description: locationWeatherData.weather[0].description,
+        temp: locationWeatherData.main.temp,
+        humidity: locationWeatherData.main.humidity,
+        windspeed: locationWeatherData.wind.speed,
+      };
+    })
+  );
+
   return (
     <div className="flex flex-col align-center h-screen">
       <Header
@@ -64,6 +84,21 @@ export default async function LandingPage(): Promise<JSX.Element> {
             </div>
           ))}
         </div>
+        <Spacer />
+        {Object.entries(extraLocationsWeatherData).map(([index, contents]) => (
+          <div className="pt-[10px]" key={index}>
+            <Accordion
+              header={contents.header}
+              content={getFormattedWeatherDataArray({
+                main: contents.main,
+                description: contents.description,
+                temp: contents.temp,
+                humidity: contents.humidity,
+                windspeed: contents.windspeed,
+              })}
+            />
+          </div>
+        ))}
       </div>
     </div>
   );
