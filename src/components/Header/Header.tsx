@@ -3,11 +3,12 @@ import React from "react";
 export interface BasicTextProps {
   text: string;
   styling?: string;
-  variant: "primary";
+  variant: "primary" | "secondary";
 }
 
 const variants = {
   primary: "text-[34px] leading-[40px]",
+  secondary: "text-[26px] leading-[36px]",
 };
 
 export const Header = ({
